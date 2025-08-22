@@ -1,0 +1,15 @@
+Команда консоли для создания топика:
+docker exec -it $(docker compose ps -q kafka-0) kafka-topics.sh --bootstrap-server kafka-0:9092 --create --topic items --partitions 3 --replication-factor 2
+
+Информация о созданном топике:
+docker exec -it $(docker compose ps -q kafka-0) kafka-topics.sh --bootstrap-server kafka-0:9092 --describe --topic items
+
+Topic: items
+TopicId: hDeJKiDHQNWYU1FQux0X-g
+PartitionCount: 3
+ReplicationFactor: 2
+
+Configs: 
+Topic: items    Partition: 0    Leader: 1       Replicas: 1,2   Isr: 1,2
+Topic: items    Partition: 1    Leader: 0       Replicas: 2,0   Isr: 0,2
+Topic: items    Partition: 2    Leader: 0       Replicas: 0,1   Isr: 0,1
