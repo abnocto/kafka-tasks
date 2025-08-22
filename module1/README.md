@@ -8,7 +8,7 @@ docker compose up -d kafka-0 kafka-1 kafka-2 schema-registry kafka-ui
 docker exec -it $(docker compose ps -q kafka-0) kafka-topics.sh --bootstrap-server kafka-0:9092 --create --topic items --partitions 3 --replication-factor 2
 ```
 
-#### Запуск приложения в двух экземплярах
+### Запуск приложения в двух экземплярах
 ```bash
 docker compose up -d --scale module-1=2 module-1
 ```
@@ -22,10 +22,6 @@ docker compose ps
 ```bash
 docker compose logs -f module-1
 ```
-
-### Kafka UI
-* [Интерфейс](http://localhost:8080)
-* [Конфигурация](http://localhost:8080/ui/clusters/kraft/brokers/0/configs)
 
 ### Как работает приложение
 * При запуске приложения запускаются три процесса - для продюсера и двух консюмеров.
