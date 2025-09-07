@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /module-2
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./app ./app
+COPY ./main.py .
+
+ENV PYTHONPATH=/module-2
+ENV PYTHONUNBUFFERED=1
+
+CMD ["faust", "-A", "main", "worker", "--loglevel=info"]
