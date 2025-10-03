@@ -94,6 +94,13 @@ INSERT INTO orders (user_id, product_name, quantity) VALUES (4, 'Product E', 4);
 
 ### 5. Получение данных из топиков Kafka
 
+#### Самописный консьюмер
+```bash
+python3 consumer.py
+```
+
+#### kafka-console-consumer
+
 - Просмотр доступных топиков
 
 ```bash

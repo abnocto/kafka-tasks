@@ -6,6 +6,7 @@
   "database.password": "postgres-pw",
   "database.dbname": "module4",
   "database.server.name": "module4",
+  "plugin.name": "decoderbufs",
   "table.include.list": "public.users,public.orders",
   "transforms": "unwrap",
   "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
@@ -13,7 +14,8 @@
   "transforms.unwrap.delete.handling.mode": "rewrite",
   "topic.prefix": "module4",
   "topic.creation.enable": "true",
-  "topic.creation.default.replication.factor": "1",
+  "topic.creation.default.replication.factor": "3",
   "topic.creation.default.partitions": "1",
+  "exactly.once.support": "required",
   "skipped.operations": "none"
 }
