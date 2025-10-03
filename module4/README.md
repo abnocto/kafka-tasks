@@ -208,6 +208,7 @@ Grafana
 - `database.password: "postgres-pw"` - пароль БД
 - `database.dbname: "module4"` - название БД
 - `database.server.name: "module4"` - имя сервера БД
+- `plugin.name: "decoderbufs"` - плагин для логической репликации PostgreSQL
 
 ### Настройки отслеживания таблиц:
 
@@ -224,9 +225,10 @@ Grafana
 
 - `topic.prefix: "module4"` - префикс для имени топиков
 - `topic.creation.enable: "true"` - автоматическое создание топиков включено
-- `topic.creation.default.replication.factor: "1"` - фактор репликации для новых топиков
+- `topic.creation.default.replication.factor: "3"` - фактор репликации для новых топиков
 - `topic.creation.default.partitions: "1"` - количество партиций для новых топиков
 
 ### Дополнительные параметры:
 
+- `exactly.once.support: "required"` - требует поддержки exactly-once семантики от Kafka Connect
 - `skipped.operations: "none"` - не пропускать никакие операции (INSERT, UPDATE, DELETE)
