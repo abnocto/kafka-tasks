@@ -1,0 +1,149 @@
+services:
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.0
+    ports:
+      - "8080:8080"
+    environment:
+      # Kafka
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=rc1a-nb6125776ku65anj.mdb.yandexcloud.net:9091,rc1b-lbl8a7apd2gi7lni.mdb.yandexcloud.net:9091,rc1d-tsglq1hehj5vkbm2.mdb.yandexcloud.net:9091
+      - KAFKA_CLUSTERS_0_NAME=module6
+      - KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL=SASL_SSL
+
+      # Kafka: SSL
+      - KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/tmp/ca/yandex.truststore.jks
+      - KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=yandex-password
+
+      # Kafka: SASL
+      - KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM=SCRAM-SHA-512
+      - KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG=org.apache.kafka.common.security.scram.ScramLoginModule required username="admin" password="admin-password";
+    volumes:
+      - ./ca/yandex.truststore.jks:/tmp/ca/yandex.truststore.jks
+    container_name: kafka-ui
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest
+    ports:
+      - "8081:8081"
+    environment:
+      # Schema Registry
+      - SCHEMA_REGISTRY_HOST_NAME=schema-registry
+      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
+      - SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL=http
+
+      # Kafka
+      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=rc1a-nb6125776ku65anj.mdb.yandexcloud.net:9091,rc1b-lbl8a7apd2gi7lni.mdb.yandexcloud.net:9091,rc1d-tsglq1hehj5vkbm2.mdb.yandexcloud.net:9091
+      - SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL=SASL_SSL
+
+      # Kafka: SSL
+      - SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_LOCATION=/etc/schema-registry/secrets/yandex.truststore.jks
+      - SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_PASSWORD=yandex-password
+
+      # Kafka: SASL
+      - SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM=SCRAM-SHA-512
+      - SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG=org.apache.kafka.common.security.scram.ScramLoginModule required username="admin" password="admin-password";
+    volumes:
+      - ./ca/yandex.truststore.jks:/etc/schema-registry/secrets/yandex.truststore.jks
+    container_name: schema-registry
+
+  hadoop-namenode:
+    image: apache/hadoop:3.4.1
+    ports:
+      - "9871:9871"
+      - "9000:9000"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2g"
+    shm_size: 10G
+    hostname: hadoop-namenode
+    user: "root"
+    entrypoint: ["/bin/bash", "/namenode_entrypoint.sh"]
+    command: ["hdfs", "namenode"]
+    volumes:
+      - ./hadoop/config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./hadoop/config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./hadoop/config/ssl-server.xml:/opt/hadoop/etc/hadoop/ssl-server.xml
+      - ./hadoop/creds:/opt/hadoop/certs
+      - ./hadoop/namenode_entrypoint.sh:/namenode_entrypoint.sh
+    container_name: hadoop-namenode
+
+  hadoop-datanode-1:
+    image: apache/hadoop:3.4.1
+    ports:
+      - "9864:9864"
+      - "9970:9970"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2g"
+    shm_size: 10G
+    hostname: hadoop-datanode-1
+    user: "root"
+    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+    command: ["hdfs", "datanode"]
+    volumes:
+      - ./hadoop/config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./hadoop/config/hdfs-site-datanode-1.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./hadoop/config/ssl-server.xml:/opt/hadoop/etc/hadoop/ssl-server.xml
+      - ./hadoop/creds:/opt/hadoop/certs
+      - ./hadoop/datanode_entrypoint.sh:/datanode_entrypoint.sh
+    depends_on:
+      - hadoop-namenode
+    container_name: hadoop-datanode-1
+
+  hadoop-datanode-2:
+    image: apache/hadoop:3.4.1
+    ports:
+      - "9865:9865"
+      - "9971:9971"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2g"
+    shm_size: 10G
+    hostname: hadoop-datanode-2
+    user: "root"
+    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+    command: ["hdfs", "datanode"]
+    volumes:
+      - ./hadoop/config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./hadoop/config/hdfs-site-datanode-2.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./hadoop/config/ssl-server.xml:/opt/hadoop/etc/hadoop/ssl-server.xml
+      - ./hadoop/creds:/opt/hadoop/certs
+      - ./hadoop/datanode_entrypoint.sh:/datanode_entrypoint.sh
+    depends_on:
+      - hadoop-namenode
+    container_name: hadoop-datanode-2
+
+  hadoop-datanode-3:
+    image: apache/hadoop:3.4.1
+    ports:
+      - "9866:9866"
+      - "9972:9972"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2g"
+    shm_size: 10G
+    hostname: hadoop-datanode-3
+    user: "root"
+    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+    command: ["hdfs", "datanode"]
+    volumes:
+      - ./hadoop/config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./hadoop/config/hdfs-site-datanode-3.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./hadoop/config/ssl-server.xml:/opt/hadoop/etc/hadoop/ssl-server.xml
+      - ./hadoop/creds:/opt/hadoop/certs
+      - ./hadoop/datanode_entrypoint.sh:/datanode_entrypoint.sh
+    depends_on:
+      - hadoop-namenode
+    container_name: hadoop-datanode-3
+
+volumes:
+  kafka_0_data:
+  kafka_1_data:
+  kafka_2_data:

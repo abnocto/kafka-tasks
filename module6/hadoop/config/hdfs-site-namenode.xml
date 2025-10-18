@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<configuration>
+  <property>
+    <name>dfs.replication</name>
+    <value>3</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file:/usr/local/hadoop/hdfs/namenode</value>
+  </property>
+
+  <property>
+    <name>dfs.http.policy</name>
+    <value>HTTPS_ONLY</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.https-address</name>
+    <value>0.0.0.0:9871</value>
+  </property>
+</configuration>

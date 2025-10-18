@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<configuration>
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>file:/usr/local/hadoop/hdfs/datanode</value>
+  </property>
+
+  <property>
+    <name>dfs.datanode.hostname</name>
+    <value>localhost</value>
+  </property>
+  
+  <property>
+    <name>dfs.datanode.address</name>
+    <value>0.0.0.0:9972</value>
+  </property>
+
+  <property>
+    <name>dfs.datanode.https.address</name>
+    <value>0.0.0.0:9866</value>
+  </property>
+
+  <property>
+    <name>dfs.http.policy</name>
+    <value>HTTPS_ONLY</value>
+  </property>
+</configuration>
