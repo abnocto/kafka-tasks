@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Item",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "price": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        }
+      },
+      "required": ["amount", "currency"]
+    },
+    "category": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "stock": {
+      "type": "object",
+      "properties": {
+        "available": {
+          "type": "integer"
+        },
+        "reserved": {
+          "type": "integer"
+        }
+      },
+      "required": ["available", "reserved"]
+    },
+    "sku": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        },
+        "required": ["url", "alt"]
+      }
+    },
+    "specifications": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "index": {
+      "type": "string"
+    },
+    "store_id": {
+      "type": "string"
+    }
+  },
+  "required": ["product_id", "name", "description", "price", "category", "brand", "stock", "sku", "tags", "images", "specifications", "created_at", "updated_at", "index", "store_id"]
+}
+

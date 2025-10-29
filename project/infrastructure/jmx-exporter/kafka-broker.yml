@@ -1,0 +1,239 @@
+#  Copyright 2023 The original authors
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+#---------------------------------------------------------------------------------------------------------
+# Kafka Broker JMX Metrics :
+# Compatible with version Apache Kafka v3.x.x / Confluent Plateform 7.x.x
+# Universal config for Java Agent mode (works for all brokers)
+#---------------------------------------------------------------------------------------------------------
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+#Whitelist is used to reduce scrapping time
+whitelistObjectNames:
+  - java.lang:*
+  - kafka.cluster:*
+  - kafka.controller:*
+  - kafka.log:*
+  - kafka.server:type=KafkaServer,name=BrokerState
+  - kafka.server:type=KafkaRequestHandlerPool,*
+  - kafka.server:type=BrokerTopicMetrics,*
+  - kafka.server:type=FetcherLagMetrics,*
+  - kafka.server:type=FetcherStats,*
+  - kafka.server:type=Request,*
+  - kafka.server:type=Fetch,*
+  - kafka.server:type=Produce,*
+  - kafka.server:type=ReplicaManager,*
+  - kafka.server:type=ReplicaFetcherManager,*
+  - kafka.server:type=SessionExpireListener,*
+  - kafka.server:type=controller-channel-metrics,*
+  - kafka.server:type=socket-server-metrics,*
+  - kafka.network:type=RequestChannel,*
+  - kafka.network:type=Processor,*
+  - kafka.network:type=SocketServer,*
+  - kafka.network:type=RequestMetrics,*
+  - kafka.coordinator.group:*
+
+blacklistObjectNames:
+  - java.lang:type=ClassLoading,*
+  - java.lang:type=Compilation,*
+  - java.lang:type=MemoryManager,*
+  - kafka.utils:*
+  - kafka.controller:type=ControllerChannelManager,name=QueueSize,*
+  # Following metrics are exposed per topics
+  - kafka.log:type=Log,name=LogEndOffset,*
+  - kafka.log:type=Log,name=LogStartOffset,*
+  - kafka.cluster:type=Partition,name=InSyncReplicasCount,*
+  - kafka.cluster:type=Partition,name=LastStableOffsetLag,*
+  - kafka.cluster:type=Partition,name=ReplicasCounts,*
+  - kafka.cluster:type=Partition,name=UnderReplicated,*
+  - kafka.server:type=BrokerTopicMetrics,name=TotalFetchRequestsPerSec,*
+  - kafka.server:type=BrokerTopicMetrics,name=TotalProduceRequestsPerSec,*
+  - kafka.server:type=BrokerTopicMetrics,name=FailedProduceRequestsPerSec,*
+  - kafka.server:type=BrokerTopicMetrics,name=FailedFetchRequestsPerSec,*
+  - kafka.server:type=BrokerTopicMetrics,name=BytesRejectedPerSec,*
+
+rules:
+  #-------------------------------------------------------------------------------------------------------
+  # KafkaServers : State of broker server
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.server<type=KafkaServer, name=BrokerState><>Value
+    name: kafka_server_brokerstate
+    labels:
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # KafkaController
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.controller<type=KafkaController, name=([^,]+)><>Value
+    name: kafka_controller_$1
+    labels:
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # ControllerStats
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.controller<type=ControllerStats, name=([^,]+)><>(OneMinuteRate|Mean|75thPercentile|99thPercentile)
+    name: kafka_controller_stats_$1
+    labels:
+      aggregate: $2
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # Coordinator : GroupMetadataManager
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.coordinator.group<type=GroupMetadataManager, name=([^,]+)><>(Value)
+    name: kafka_coordinator_group_metadata_manager_$1
+    labels:
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # KafkaRequestHandlerPool
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.server<type=KafkaRequestHandlerPool, name=RequestHandlerAvgIdlePercent><>(\w+)
+    name: kafka_server_request_handler_avg_idle_percent
+    labels:
+      aggregate: $1
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # Network Socket Server
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.network<type=SocketServer, name=NetworkProcessorAvgIdlePercent><>(Value)
+    name: kafka_network_socket_server_processor_avg_idle_percent
+    labels:
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # Network Processor
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.network<type=Processor, name=IdlePercent, networkProcessor=([0-9]+)><>(Value)
+    name: kafka_network_processor_idle_percent
+    labels:
+      processor: $1
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # Network KafkaRequestChannel
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.network<type=RequestChannel, name=(\w+)QueueSize><>Value
+    name: kafka_network_request_channel_queue_size
+    labels:
+      queue: $1
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # Network KafkaRequest
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.network<type=RequestMetrics, name=RequestsPerSec, request=(\w+), version=([0-9]+)><>(OneMinuteRate|Mean)
+    name: kafka_network_request_per_sec
+    labels:
+      request: $1
+      version: $2
+      aggregate: $3
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # Network KafkaRequestMetrics
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.network<type=RequestMetrics, name=(\w+)TimeMs, request=(Produce|Fetch|FetchConsumer|FetchFollower)><>(OneMinuteRate|Mean|75thPercentile|99thPercentile)
+    name: kafka_network_request_metrics_time_ms
+    labels:
+      scope: $1
+      request: $2
+      aggregate: $3
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # KafkaServer / BrokerTopicMetrics - I/O metrics
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(BytesInPerSec|BytesOutPerSec|MessagesInPerSec|ReplicationBytesOutPerSec|ReplicationBytesInPerSec)><>(OneMinute)Rate
+    name: kafka_server_broker_topic_metrics_$1_rate
+    labels:
+      aggregate: $2
+      service: kafka-broker
+
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(BytesInPerSec|BytesOutPerSec|MessagesInPerSec|ReplicationBytesOutPerSec|ReplicationBytesInPerSec), topic=([^,]+)><>(OneMinute)Rate
+    name: kafka_server_broker_topic_metrics_$1_rate
+    labels:
+      topic: $2
+      aggregate: $3
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # ReplicaManager
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.server<type=ReplicaManager, name=([^,]+)><>([^,]+)Rate
+    name: kafka_server_replica_manager_$1
+    labels:
+      aggregate: $2
+      service: kafka-broker
+
+  - pattern: kafka.server<type=ReplicaManager, name=([^,]+)><>(Value)
+    name: kafka_server_replica_manager_$1
+    labels:
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # ReplicaFetcherManager
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: kafka.server<type=ReplicaFetcherManager, name=([^,]+), clientId=([^,]+)><>(Value)
+    name: kafka_server_replica_fetcher_manager_$1_value
+    labels:
+      client_id: $2
+      service: kafka-broker
+
+  #-------------------------------------------------------------------------------------------------------
+  # JVM GarbageCollector
+  #-------------------------------------------------------------------------------------------------------
+  - pattern: 'java.lang<type=GarbageCollector, name=(.*)><>CollectionCount'
+    name: kafka_jvm_gc_collection_count
+    labels:
+      name: $1
+      service: kafka-broker
+
+  - pattern: 'java.lang<type=GarbageCollector, name=(.*)><>CollectionTime'
+    name: kafka_jvm_gc_collection_time
+    labels:
+      name: $1
+      service: kafka-broker
+
+  # JVM Memory
+  - pattern: java.lang<type=Memory><HeapMemoryUsage>(\w*)
+    name: kafka_jvm_heap_usage
+    labels:
+      type: $1
+      service: kafka-broker
+    attrNameSnakeCase: true
+
+  - pattern: java.lang<type=Memory><NonHeapMemoryUsage>(\w*)
+    name: kafka_jvm_non_heap_usage
+    labels:
+      type: $1
+      service: kafka-broker
+    attrNameSnakeCase: true
+
+  # JVM Thread
+  - pattern: java.lang<type=Threading><>(\w*thread_count)
+    name: kafka_jvm_$1
+    labels:
+      service: kafka-broker
+    attrNameSnakeCase: true
+
+  # Operating System
+  - pattern: java.lang<type=OperatingSystem><>(\w*)
+    name: kafka_jvm_os_$1
+    labels:
+      service: kafka-broker
+

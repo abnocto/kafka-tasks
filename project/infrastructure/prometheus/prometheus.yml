@@ -1,0 +1,50 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+rule_files:
+  - "alert.rules"
+
+alerting:
+  alertmanagers:
+    - follow_redirects: true
+      enable_http2: true
+      scheme: http
+      timeout: 10s
+      api_version: v2
+      static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+scrape_configs:
+  - job_name: 'kafka-primary'
+    static_configs:
+    - targets: 
+        - 'kafka-primary-0:7071'
+        - 'kafka-primary-1:7071'
+        - 'kafka-primary-2:7071'
+      labels:
+        cluster: 'primary'
+
+  - job_name: 'kafka-secondary'
+    static_configs:
+    - targets: 
+        - 'kafka-secondary-0:7071'
+        - 'kafka-secondary-1:7071'
+        - 'kafka-secondary-2:7071'
+      labels:
+        cluster: 'secondary'
+
+  - job_name: prometheus
+    honor_timestamps: true
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    follow_redirects: true
+    enable_http2: true
+    static_configs:
+      - targets:
+          - localhost:9090

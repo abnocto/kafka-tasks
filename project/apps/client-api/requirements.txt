@@ -1,0 +1,6 @@
+confluent-kafka
+confluent-kafka[json]
+orjson
+flask
+elasticsearch==8.11.0
+requests

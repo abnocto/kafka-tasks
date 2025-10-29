@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Items Validator</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="mt-5 mb-4">Items Validator</h1>
+
+      <h2 class="mt-5 mb-3">Управление блокировкой</h2>
+      <div class="input-group mb-3">
+        <input
+          type="text"
+          id="itemName"
+          class="form-control"
+          placeholder="Название товара"
+        />
+        <button class="btn btn-danger btn-ban">Заблокировать</button>
+        <button class="btn btn-success btn-unban">Разблокировать</button>
+      </div>
+
+      <h2 class="mt-5 mb-3">
+        Список заблокированных товаров
+        <button class="btn btn-primary btn-sm btn-refresh">Обновить</button>
+      </h2>
+      <ul id="bannedList" class="list-group"></ul>
+    </div>
+
+    <script>
+      const itemNameInput = document.getElementById("itemName");
+      const banButton = document.querySelector(".btn-ban");
+      const unbanButton = document.querySelector(".btn-unban");
+      const refreshButton = document.querySelector(".btn-refresh");
+      const bannedList = document.getElementById("bannedList");
+
+      banButton.addEventListener("click", async () => {
+        const itemName = itemNameInput.value.trim();
+        if (!itemName) return;
+
+        const response = await fetch("/api/banned/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: itemName }),
+        });
+
+        if (response.ok) {
+          itemNameInput.value = "";
+          setTimeout(loadBannedItems, 500);
+        }
+      });
+
+      unbanButton.addEventListener("click", async () => {
+        const itemName = itemNameInput.value.trim();
+        if (!itemName) return;
+
+        const response = await fetch("/api/banned/remove", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: itemName }),
+        });
+
+        if (response.ok) {
+          itemNameInput.value = "";
+          setTimeout(loadBannedItems, 500);
+        }
+      });
+
+      refreshButton.addEventListener("click", loadBannedItems);
+
+      async function loadBannedItems() {
+        const response = await fetch("/api/banned/list");
+        const data = await response.json();
+
+        if (data.items.length === 0) {
+          bannedList.innerHTML =
+            '<li class="list-group-item">Нет заблокированных товаров</li>';
+        } else {
+          bannedList.innerHTML = data.items
+            .map((item) => `<li class="list-group-item">${item}</li>`)
+            .join("");
+        }
+      }
+
+      loadBannedItems();
+    </script>
+  </body>
+</html>

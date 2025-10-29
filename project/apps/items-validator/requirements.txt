@@ -1,0 +1,4 @@
+faust-streaming
+confluent-kafka
+confluent-kafka[json]
+orjson

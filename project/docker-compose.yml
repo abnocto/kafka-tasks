@@ -1,0 +1,592 @@
+x-kafka-common-security: &kafka-common-security
+  # SSL
+  KAFKA_CFG_SSL_KEYSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.keystore.jks
+  KAFKA_CFG_SSL_KEYSTORE_PASSWORD: kafka-password
+  KAFKA_CFG_SSL_KEY_PASSWORD: kafka-password
+  KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.truststore.jks
+  KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: kafka-password
+  
+  # SASL
+  KAFKA_CFG_SASL_ENABLED_MECHANISMS: PLAIN
+  KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+  KAFKA_CFG_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
+  KAFKA_CLIENT_USERS: admin,shop-api,client-api,items-validator,analytics
+  KAFKA_CLIENT_PASSWORDS: admin-secret,shop-api-secret,client-api-secret,items-validator-secret,analytics-secret
+  KAFKA_INTER_BROKER_USER: admin
+  KAFKA_INTER_BROKER_PASSWORD: admin-secret
+  KAFKA_CONTROLLER_USER: admin
+  KAFKA_CONTROLLER_PASSWORD: admin-secret
+  
+  # ACL
+  KAFKA_CFG_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+  KAFKA_CFG_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
+  KAFKA_CFG_SUPER_USERS: User:admin
+
+services:
+  kafka-primary-0:
+    image: bitnamilegacy/kafka:3.4
+    ports:
+      - "9094:9094"
+      - "7071:7071"
+    environment:
+      # Kraft
+      KAFKA_KRAFT_CLUSTER_ID: abcdefghijklmnopqrstuv
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-primary-0:9093,1@kafka-primary-1:9093,2@kafka-primary-2:9093
+
+      # Listeners
+      KAFKA_CFG_LISTENERS: BROKER://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: BROKER://kafka-primary-0:9092,EXTERNAL://localhost:9094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:SASL_SSL,CONTROLLER:SASL_SSL,EXTERNAL:SASL_SSL
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: BROKER
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # JMX Exporter
+      KAFKA_OPTS: "-javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-0.20.0.jar=7071:/opt/jmx-exporter/kafka-broker.yml"
+
+      # Common security settings
+      <<: *kafka-common-security
+    volumes:
+      - kafka_primary_0_data:/bitnami/kafka
+      - ./infrastructure/ssl/kafka-primary-0:/bitnami/kafka/config/certs
+      - ./infrastructure/jmx-exporter:/opt/jmx-exporter
+    container_name: kafka-primary-0
+
+  kafka-primary-1:
+    image: bitnamilegacy/kafka:3.4
+    ports:
+      - "9095:9095"
+      - "7072:7071"
+    environment:
+      # Kraft
+      KAFKA_KRAFT_CLUSTER_ID: abcdefghijklmnopqrstuv
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-primary-0:9093,1@kafka-primary-1:9093,2@kafka-primary-2:9093
+
+      # Listeners
+      KAFKA_CFG_LISTENERS: BROKER://:9092,CONTROLLER://:9093,EXTERNAL://:9095
+      KAFKA_CFG_ADVERTISED_LISTENERS: BROKER://kafka-primary-1:9092,EXTERNAL://localhost:9095
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:SASL_SSL,CONTROLLER:SASL_SSL,EXTERNAL:SASL_SSL
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: BROKER
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # JMX Exporter
+      KAFKA_OPTS: "-javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-0.20.0.jar=7071:/opt/jmx-exporter/kafka-broker.yml"
+
+      # Common security settings
+      <<: *kafka-common-security
+    volumes:
+      - kafka_primary_1_data:/bitnami/kafka
+      - ./infrastructure/ssl/kafka-primary-1:/bitnami/kafka/config/certs
+      - ./infrastructure/jmx-exporter:/opt/jmx-exporter
+    container_name: kafka-primary-1
+
+  kafka-primary-2:
+    image: bitnamilegacy/kafka:3.4
+    ports:
+      - "9096:9096"
+      - "7073:7071"
+    environment:
+      # Kraft
+      KAFKA_KRAFT_CLUSTER_ID: abcdefghijklmnopqrstuv
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_NODE_ID: 2
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-primary-0:9093,1@kafka-primary-1:9093,2@kafka-primary-2:9093
+      
+      # Listeners
+      KAFKA_CFG_LISTENERS: BROKER://:9092,CONTROLLER://:9093,EXTERNAL://:9096
+      KAFKA_CFG_ADVERTISED_LISTENERS: BROKER://kafka-primary-2:9092,EXTERNAL://localhost:9096
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:SASL_SSL,CONTROLLER:SASL_SSL,EXTERNAL:SASL_SSL
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: BROKER
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # JMX Exporter
+      KAFKA_OPTS: "-javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-0.20.0.jar=7071:/opt/jmx-exporter/kafka-broker.yml"
+
+      # Common security settings
+      <<: *kafka-common-security
+    volumes:
+      - kafka_primary_2_data:/bitnami/kafka
+      - ./infrastructure/ssl/kafka-primary-2:/bitnami/kafka/config/certs
+      - ./infrastructure/jmx-exporter:/opt/jmx-exporter
+    container_name: kafka-primary-2
+  
+  kafka-secondary-0:
+    image: bitnamilegacy/kafka:3.4
+    ports:
+      - "9097:9097"
+      - "7074:7071"
+    environment:
+      # Kraft
+      KAFKA_KRAFT_CLUSTER_ID: wxyzabcdefghijklmnopqr
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-secondary-0:9093,1@kafka-secondary-1:9093,2@kafka-secondary-2:9093
+
+      # Listeners
+      KAFKA_CFG_LISTENERS: BROKER://:9092,CONTROLLER://:9093,EXTERNAL://:9097
+      KAFKA_CFG_ADVERTISED_LISTENERS: BROKER://kafka-secondary-0:9092,EXTERNAL://localhost:9097
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:SASL_SSL,CONTROLLER:SASL_SSL,EXTERNAL:SASL_SSL
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: BROKER
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # JMX Exporter
+      KAFKA_OPTS: "-javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-0.20.0.jar=7071:/opt/jmx-exporter/kafka-broker.yml"
+
+      # Common security settings
+      <<: *kafka-common-security
+    volumes:
+      - kafka_secondary_0_data:/bitnami/kafka
+      - ./infrastructure/ssl/kafka-secondary-0:/bitnami/kafka/config/certs
+      - ./infrastructure/jmx-exporter:/opt/jmx-exporter
+    container_name: kafka-secondary-0
+
+  kafka-secondary-1:
+    image: bitnamilegacy/kafka:3.4
+    ports:
+      - "9098:9098"
+      - "7075:7071"
+    environment:
+      # Kraft
+      KAFKA_KRAFT_CLUSTER_ID: wxyzabcdefghijklmnopqr
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-secondary-0:9093,1@kafka-secondary-1:9093,2@kafka-secondary-2:9093
+
+      # Listeners
+      KAFKA_CFG_LISTENERS: BROKER://:9092,CONTROLLER://:9093,EXTERNAL://:9098
+      KAFKA_CFG_ADVERTISED_LISTENERS: BROKER://kafka-secondary-1:9092,EXTERNAL://localhost:9098
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:SASL_SSL,CONTROLLER:SASL_SSL,EXTERNAL:SASL_SSL
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: BROKER
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # JMX Exporter
+      KAFKA_OPTS: "-javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-0.20.0.jar=7071:/opt/jmx-exporter/kafka-broker.yml"
+
+      # Common security settings
+      <<: *kafka-common-security
+    volumes:
+      - kafka_secondary_1_data:/bitnami/kafka
+      - ./infrastructure/ssl/kafka-secondary-1:/bitnami/kafka/config/certs
+      - ./infrastructure/jmx-exporter:/opt/jmx-exporter
+    container_name: kafka-secondary-1
+
+  kafka-secondary-2:
+    image: bitnamilegacy/kafka:3.4
+    ports:
+      - "9099:9099"
+      - "7076:7071"
+    environment:
+      # Kraft
+      KAFKA_KRAFT_CLUSTER_ID: wxyzabcdefghijklmnopqr
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_NODE_ID: 2
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-secondary-0:9093,1@kafka-secondary-1:9093,2@kafka-secondary-2:9093
+
+      # Listeners
+      KAFKA_CFG_LISTENERS: BROKER://:9092,CONTROLLER://:9093,EXTERNAL://:9099
+      KAFKA_CFG_ADVERTISED_LISTENERS: BROKER://kafka-secondary-2:9092,EXTERNAL://localhost:9099
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:SASL_SSL,CONTROLLER:SASL_SSL,EXTERNAL:SASL_SSL
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: BROKER
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # JMX Exporter
+      KAFKA_OPTS: "-javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent-0.20.0.jar=7071:/opt/jmx-exporter/kafka-broker.yml"
+
+      # Common security settings
+      <<: *kafka-common-security
+    volumes:
+      - kafka_secondary_2_data:/bitnami/kafka
+      - ./infrastructure/ssl/kafka-secondary-2:/bitnami/kafka/config/certs
+      - ./infrastructure/jmx-exporter:/opt/jmx-exporter
+    container_name: kafka-secondary-2
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest
+    ports:
+      - "8081:8081"
+    environment:
+      # Schema Registry
+      - SCHEMA_REGISTRY_HOST_NAME=schema-registry
+      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
+      - SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL=http
+
+      # Kafka
+      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka-primary-0:9092,kafka-primary-1:9092,kafka-primary-2:9092
+      - SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL=SASL_SSL
+
+      # Kafka: SSL
+      - SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_LOCATION=/etc/schema-registry/secrets/ca.truststore.jks
+      - SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_PASSWORD=kafka-password
+
+      # Kafka: SASL
+      - SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM=PLAIN
+      - SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+    volumes:
+      - ./infrastructure/ssl/ca/ca.truststore.jks:/etc/schema-registry/secrets/ca.truststore.jks
+    depends_on:
+      - kafka-primary-0
+      - kafka-primary-1
+      - kafka-primary-2
+    container_name: schema-registry
+
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    platform: linux/amd64
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    container_name: elasticsearch
+
+  kibana:
+    image: kibana:8.11.0
+    platform: linux/amd64
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    container_name: kibana
+
+  hadoop-namenode:
+    image: apache/hadoop:3.4.1
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    hostname: hadoop-namenode
+    user: "root"
+    entrypoint: ["/bin/bash", "/namenode_entrypoint.sh"]
+    command: ["hdfs", "namenode"]
+    volumes:
+      - ./infrastructure/hadoop/config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./infrastructure/hadoop/config/hdfs-site-namenode.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./infrastructure/hadoop/namenode_entrypoint.sh:/namenode_entrypoint.sh
+      - hadoop_namenode_data:/hadoop/dfs/name
+    container_name: hadoop-namenode
+
+  hadoop-datanode-1:
+    image: apache/hadoop:3.4.1
+    ports:
+      - "9864:9864"
+    hostname: hadoop-datanode-1
+    user: "root"
+    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+    command: ["hdfs", "datanode"]
+    volumes:
+      - ./infrastructure/hadoop/config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./infrastructure/hadoop/config/hdfs-site-datanode-1.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./infrastructure/hadoop/datanode_entrypoint.sh:/datanode_entrypoint.sh
+      - hadoop_datanode_1_data:/hadoop/dfs/data
+    depends_on:
+      - hadoop-namenode
+    container_name: hadoop-datanode-1
+
+  hadoop-datanode-2:
+    image: apache/hadoop:3.4.1
+    ports:
+      - "9865:9865"
+    hostname: hadoop-datanode-2
+    user: "root"
+    entrypoint: ["/bin/bash", "/datanode_entrypoint.sh"]
+    command: ["hdfs", "datanode"]
+    volumes:
+      - ./infrastructure/hadoop/config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+      - ./infrastructure/hadoop/config/hdfs-site-datanode-2.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+      - ./infrastructure/hadoop/datanode_entrypoint.sh:/datanode_entrypoint.sh
+      - hadoop_datanode_2_data:/hadoop/dfs/data
+    depends_on:
+      - hadoop-namenode
+    container_name: hadoop-datanode-2
+
+  kafka-connect:
+    build: ./infrastructure/kafka-connect
+    ports:
+      - "8083:8083"
+    environment:
+      - CONNECT_BOOTSTRAP_SERVERS=kafka-primary-0:9092,kafka-primary-1:9092,kafka-primary-2:9092
+      - CONNECT_REST_ADVERTISED_HOST_NAME=kafka-connect
+      - CONNECT_REST_PORT=8083
+      - CONNECT_GROUP_ID=kafka-connect-group
+
+      # Storage topics
+      - CONNECT_CONFIG_STORAGE_TOPIC=kafka-connect-configs
+      - CONNECT_OFFSET_STORAGE_TOPIC=kafka-connect-offsets
+      - CONNECT_STATUS_STORAGE_TOPIC=kafka-connect-status
+      - CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=3
+      - CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=3
+      - CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=3
+
+      # Converters
+      - CONNECT_KEY_CONVERTER=org.apache.kafka.connect.storage.StringConverter
+      - CONNECT_VALUE_CONVERTER=io.confluent.connect.json.JsonSchemaConverter
+      - CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL=http://schema-registry:8081
+      
+      # Converters (internal)
+      - CONNECT_INTERNAL_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - CONNECT_INTERNAL_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      
+      # Logging
+      - CONNECT_LOG4J_ROOT_LOGLEVEL=INFO
+
+      # Plugin path
+      - CONNECT_PLUGIN_PATH=/usr/share/confluent-hub-components
+    
+      # Producer SSL/SASL
+      - CONNECT_PRODUCER_SECURITY_PROTOCOL=SASL_SSL
+      - CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION=/etc/kafka-connect/secrets/ca.truststore.jks
+      - CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD=kafka-password
+      - CONNECT_PRODUCER_SASL_MECHANISM=PLAIN
+      - CONNECT_PRODUCER_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+      
+      # Consumer SSL/SASL
+      - CONNECT_CONSUMER_SECURITY_PROTOCOL=SASL_SSL
+      - CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION=/etc/kafka-connect/secrets/ca.truststore.jks
+      - CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD=kafka-password
+      - CONNECT_CONSUMER_SASL_MECHANISM=PLAIN
+      - CONNECT_CONSUMER_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+
+      # Internal SSL/SASL
+      - CONNECT_SECURITY_PROTOCOL=SASL_SSL
+      - CONNECT_SSL_TRUSTSTORE_LOCATION=/etc/kafka-connect/secrets/ca.truststore.jks
+      - CONNECT_SSL_TRUSTSTORE_PASSWORD=kafka-password
+      - CONNECT_SASL_MECHANISM=PLAIN
+      - CONNECT_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+    volumes:
+      - ./infrastructure/ssl/ca/ca.truststore.jks:/etc/kafka-connect/secrets/ca.truststore.jks
+    depends_on:
+      - kafka-primary-0
+      - kafka-primary-1
+      - kafka-primary-2
+      - schema-registry
+      - elasticsearch
+    container_name: kafka-connect
+
+  ksqldb-server:
+    image: confluentinc/ksqldb-server:latest
+    ports:
+      - "8088:8088"
+    environment:
+      - KSQL_LISTENERS=http://0.0.0.0:8088
+      - KSQL_KSQL_SERVICE_ID=ksqldb-cluster
+      
+      # Kafka (secondary)
+      - KSQL_BOOTSTRAP_SERVERS=kafka-secondary-0:9092,kafka-secondary-1:9092,kafka-secondary-2:9092
+
+      # Schema Registry
+      - KSQL_KSQL_SCHEMA_REGISTRY_URL=http://schema-registry:8081
+
+      # Kafka security
+      - KSQL_SECURITY_PROTOCOL=SASL_SSL
+      - KSQL_SSL_TRUSTSTORE_LOCATION=/etc/ksqldb/secrets/ca.truststore.jks
+      - KSQL_SSL_TRUSTSTORE_PASSWORD=kafka-password
+      - KSQL_SASL_MECHANISM=PLAIN
+      - KSQL_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+
+      # Kafka Streams security
+      - KSQL_KSQL_STREAMS_SECURITY_PROTOCOL=SASL_SSL
+      - KSQL_KSQL_STREAMS_SSL_TRUSTSTORE_LOCATION=/etc/ksqldb/secrets/ca.truststore.jks
+      - KSQL_KSQL_STREAMS_SSL_TRUSTSTORE_PASSWORD=kafka-password
+      - KSQL_KSQL_STREAMS_SASL_MECHANISM=PLAIN
+      - KSQL_KSQL_STREAMS_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+    volumes:
+      - ./infrastructure/ssl/ca/ca.truststore.jks:/etc/ksqldb/secrets/ca.truststore.jks
+    depends_on:
+      - kafka-secondary-0
+      - kafka-secondary-1
+      - kafka-secondary-2
+      - schema-registry
+    container_name: ksqldb-server
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.0
+    ports:
+      - "8080:8080"
+    environment:
+      # Kafka Primary Cluster
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-primary-0:9092,kafka-primary-1:9092,kafka-primary-2:9092
+      - KAFKA_CLUSTERS_0_NAME=kafka-primary
+      - KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL=SASL_SSL
+
+      # Kafka Primary: SSL
+      - KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/tmp/ca/ca.truststore.jks
+      - KAFKA_CLUSTERS_0_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=kafka-password
+
+      # Kafka Primary: SASL
+      - KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM=PLAIN
+      - KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+
+      # Kafka Secondary Cluster
+      - KAFKA_CLUSTERS_1_BOOTSTRAP_SERVERS=kafka-secondary-0:9092,kafka-secondary-1:9092,kafka-secondary-2:9092
+      - KAFKA_CLUSTERS_1_NAME=kafka-secondary
+      - KAFKA_CLUSTERS_1_PROPERTIES_SECURITY_PROTOCOL=SASL_SSL
+
+      # Kafka Secondary: SSL
+      - KAFKA_CLUSTERS_1_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/tmp/ca/ca.truststore.jks
+      - KAFKA_CLUSTERS_1_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=kafka-password
+
+      # Kafka Secondary: SASL
+      - KAFKA_CLUSTERS_1_PROPERTIES_SASL_MECHANISM=PLAIN
+      - KAFKA_CLUSTERS_1_PROPERTIES_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+    
+      # ksqlDB Server
+      - KAFKA_CLUSTERS_1_KSQLDBSERVER=http://ksqldb-server:8088
+    volumes:
+      - ./infrastructure/ssl/ca/ca.truststore.jks:/tmp/ca/ca.truststore.jks
+    depends_on:
+      - kafka-primary-0
+      - kafka-primary-1
+      - kafka-primary-2
+      - kafka-secondary-0
+      - kafka-secondary-1
+      - kafka-secondary-2
+      - ksqldb-server
+    container_name: kafka-ui
+
+  mirrormaker2:
+    build: ./infrastructure/mirrormaker2
+    volumes:
+      - ./infrastructure/ssl/kafka-primary-0:/bitnami/kafka/config/certs
+    depends_on:
+      - kafka-primary-0
+      - kafka-primary-1
+      - kafka-primary-2
+      - kafka-secondary-0
+      - kafka-secondary-1
+      - kafka-secondary-2
+    container_name: mirrormaker2
+
+  prometheus:
+    image: "prom/prometheus:v2.47.1"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infrastructure/prometheus/alert.rules:/etc/prometheus/alert.rules
+    command: "--config.file=/etc/prometheus/prometheus.yml"
+    depends_on:
+      - kafka-primary-0
+      - kafka-primary-1
+      - kafka-primary-2
+      - kafka-secondary-0
+      - kafka-secondary-1
+      - kafka-secondary-2
+    container_name: prometheus
+
+  grafana:
+    image: "grafana/grafana:9.5.12"
+    ports:
+      - "3001:3000"
+    environment:
+      GF_PATHS_DATA: /var/lib/grafana
+      GF_SECURITY_ADMIN_PASSWORD: kafka
+    volumes:
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
+      - ./infrastructure/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    container_name: grafana
+
+  alertmanager:
+    image: prom/alertmanager:v0.21.0
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./infrastructure/alertmanager/config.yml:/etc/alertmanager/config.yml
+    command:
+      - "--config.file=/etc/alertmanager/config.yml"
+      - "--storage.path=/alertmanager"
+      - "--log.level=debug"
+    container_name: alertmanager
+
+  init:
+    build: ./init
+    volumes:
+      - ./infrastructure/ssl/kafka-primary-0:/bitnami/kafka/config/certs
+      - ./infrastructure/kafka-connect/elasticsearch-sink.json:/kafka-connect-configs/elasticsearch-sink.json
+      - ./infrastructure/schemas/:/schemas/
+    depends_on:
+      - kafka-primary-0
+      - kafka-primary-1
+      - kafka-primary-2
+      - kafka-secondary-0
+      - kafka-secondary-1
+      - kafka-secondary-2
+      - schema-registry
+      - kafka-connect
+      - elasticsearch
+      - hadoop-namenode
+      - hadoop-datanode-1
+      - hadoop-datanode-2
+      - ksqldb-server
+      - mirrormaker2
+    container_name: init
+
+  shop-api:
+    build: ./apps/shop-api
+    ports:
+      - "8886:8886"
+    volumes:
+      - ./infrastructure/ssl/ca/ca.crt:/ssl/ca.crt
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    container_name: shop-api
+
+  client-api:
+    build: ./apps/client-api
+    ports:
+      - "8887:8887"
+    volumes:
+      - ./infrastructure/ssl/ca/ca.crt:/ssl/ca.crt
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    container_name: client-api
+
+  items-validator:
+    build: ./apps/items-validator
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./infrastructure/ssl/ca/ca.crt:/ssl/ca.crt
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    container_name: items-validator
+
+  analytics:
+    build: ./apps/analytics
+    volumes:
+      - ./infrastructure/ssl/ca/ca.truststore.jks:/ssl/ca.truststore.jks
+      - ./infrastructure/hadoop/config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    container_name: analytics
+
+volumes:
+  kafka_primary_0_data:
+  kafka_primary_1_data:
+  kafka_primary_2_data:
+  kafka_secondary_0_data:
+  kafka_secondary_1_data:
+  kafka_secondary_2_data:
+  elasticsearch_data:
+  hadoop_namenode_data:
+  hadoop_datanode_1_data:
+  hadoop_datanode_2_data:

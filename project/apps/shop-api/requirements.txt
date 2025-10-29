@@ -1,0 +1,4 @@
+confluent-kafka
+confluent-kafka[json]
+orjson
+flask
